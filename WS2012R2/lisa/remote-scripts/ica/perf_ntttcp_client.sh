@@ -511,7 +511,7 @@ if [ -d  $HOME/$log_folder ]; then
 fi
 
 mkdir $HOME/$log_folder
-# Determine test type lagscope/ntttcp/ntttcp-udp
+# Determine test type lagscope/ntttcp
 if [[ "${TEST_TYPE:-UNDEFINED}" = "UNDEFINED" ]] || [[ "${TEST_TYPE}" = "ntttcp" ]]; then
     eth_log="$HOME/$log_folder/eth_report.log"
     echo "#test_connections    throughput_gbps    average_packet_size" > $eth_log
@@ -544,16 +544,7 @@ if [[ "${TEST_TYPE:-UNDEFINED}" = "UNDEFINED" ]] || [[ "${TEST_TYPE}" = "ntttcp"
         echo "======================================"
         echo "Running Test: $num_threads_P X $num_threads_n"
         echo "======================================"
-if [[ "${UDP_MODE}" = "yes" ]]; 
-# runs ntttcp on udp if the variable exists in test parameters
-   then
-        ntttcp_recv_log="$HOME/$log_folder/ntttcp-receiver-p${num_threads_P}X${num_threads_n}.log"
-        ssh -i "$HOME/.ssh/${SSH_PRIVATE_KEY}" -f -o StrictHostKeyChecking=no ${SERVER_OS_USERNAME}@${STATIC_IP2} \
-        "ulimit -n 20480 && ntttcp -u -b ${NTTTCP_BUFFER} -r ${SERVER_IP} -P ${num_threads_P}  -e ${ipVersion} > ${ntttcp_recv_log}"
-   else
-        ssh -i "$HOME/.ssh/${SSH_PRIVATE_KEY}" -f -o StrictHostKeyChecking=no ${SERVER_OS_USERNAME}@${STATIC_IP2} \
-        "ulimit -n 20480 && ntttcp -r${SERVER_IP} -P $num_threads_P -e ${ipVersion} > ${ntttcp_recv_log}"
-    fi
+        ssh -i $HOME/.ssh/${SSH_PRIVATE_KEY} -f -o StrictHostKeyChecking=no ${SERVER_OS_USERNAME}@${STATIC_IP2} "ulimit -n 20480 && ntttcp -r${SERVER_IP} -P $num_threads_P -e ${ipVersion} > $HOME/$log_folder/ntttcp-receiver-p${num_threads_P}X${num_threads_n}.log"
         ssh -i $HOME/.ssh/${SSH_PRIVATE_KEY} -f -o StrictHostKeyChecking=no ${SERVER_OS_USERNAME}@${STATIC_IP2} "lagscope -r${SERVER_IP} ${ipVersion}"
         sleep 1
         ssh -i $HOME/.ssh/${SSH_PRIVATE_KEY} -f -o StrictHostKeyChecking=no ${SERVER_OS_USERNAME}@${STATIC_IP2} "for ((i=1;i<=$TEST_DURATION;i++)); do ss -ta | grep ESTA | grep -v ssh | wc -l >> $HOME/$log_folder/tcp-connections-p${current_test_threads}.log; sleep 1; done"
